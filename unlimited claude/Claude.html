@@ -4,7 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Claude Interface - Fully Functional</title>
+    <!-- Puter.js with Fallback URLs -->
     <script src="https://js.puter.com/v2/"></script>
+    <script>
+        // Fallback loading if main CDN fails
+        function loadPuterFallback() {
+            if (typeof puter !== 'undefined') {
+                console.log('✅ Puter.js loaded successfully from main CDN');
+                return;
+            }
+            console.warn('⚠️ Puter.js not loaded from main CDN, trying fallback...');
+            
+            const fallbackURL = 'https://cdn.puter.com/v2/puter.js';
+            const script = document.createElement('script');
+            script.src = fallbackURL;
+            script.onload = () => {
+                console.log('✅ Puter.js loaded from fallback CDN');
+                window.puterLoaded = true;
+            };
+            script.onerror = () => {
+                console.error('❌ Failed to load Puter.js from both sources');
+                window.puterLoadFailed = true;
+            };
+            document.head.appendChild(script);
+        }
+        
+        // Try fallback after 3 seconds
+        setTimeout(() => {
+            loadPuterFallback();
+        }, 3000);
+    </script>
     <style>
         * {
             margin: 0;
@@ -839,11 +868,34 @@
             
             try {
                 if (authButton) {
-                    authButton.textContent = '🔄 Authenticating...';
+                    authButton.textContent = '🔄 Checking library...';
                     authButton.disabled = true;
                 }
                 
-                console.log('🔐 Manually triggering Puter authentication...');
+                console.log('🔐 Checking if Puter.js is loaded...');
+                
+                // CHECK 1: Is Puter library loaded?
+                if (typeof puter === 'undefined') {
+                    console.warn('⚠️ Puter.js not loaded yet, waiting...');
+                    
+                    // Wait for it to load (max 5 seconds)
+                    let waited = 0;
+                    while (typeof puter === 'undefined' && waited < 5000) {
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        waited += 500;
+                    }
+                    
+                    // Still not loaded?
+                    if (typeof puter === 'undefined') {
+                        throw new Error('Puter.js library failed to load from CDN. This is likely a network issue.');
+                    }
+                }
+                
+                console.log('✅ Puter.js is available, attempting authentication...');
+                
+                if (authButton) {
+                    authButton.textContent = '🔄 Authenticating...';
+                }
                 
                 // Trigger authentication with a simple test call
                 const authResponse = await puter.ai.chat("test", {model: 'claude-sonnet-4'});
@@ -869,42 +921,85 @@
                 console.error('❌ Manual authentication failed:', error);
                 
                 if (authButton) {
-                    authButton.textContent = '❌ Auth Failed - Try Guide';
                     authButton.disabled = false;
                     authButton.style.backgroundColor = '#dc2626';
                 }
                 
-                // --- ENHANCED ERROR MESSAGE ---
-                const troubleshootGuide = `
+                // Determine error type and provide specific guidance
+                let troubleshootGuide = '';
+                
+                if (error.message.includes('Puter.js library failed to load')) {
+                    troubleshootGuide = `
+⚠️ PUTER.JS LIBRARY FAILED TO LOAD
+
+This is a network connectivity issue. The website js.puter.com cannot be reached.
+
+--- SOLUTIONS ---
+
+1️⃣ CHECK YOUR INTERNET CONNECTION:
+   • Make sure you have a stable internet connection
+   • Try opening https://puter.com in a new tab
+
+2️⃣ IF INTERNET IS OK:
+   • Try refreshing this page (Ctrl+R or Cmd+R)
+   • Wait 5-10 seconds for the fallback CDN to load
+   • Try again
+
+3️⃣ IF STILL NOT WORKING:
+   • The Puter.js library might be temporarily unavailable
+   • Try again in a few minutes
+   • Or use a VPN if your network blocks CDNs
+
+If you continue to have issues, the problem is with your internet or ISP blocking the CDN.
+`;
+                    if (authButton) {
+                        authButton.textContent = '❌ CDN Not Available';
+                    }
+                } else {
+                    troubleshootGuide = `
 ⚠️ AUTHENTICATION FAILED!
 
 This usually happens because of your browser profile settings (extensions, cache, etc.), NOT a bug in the code.
-
-As you noticed, it works in a new Guest or Incognito profile. Here is how to fix it in your MAIN profile:
 
 --- TROUBLESHOOTING GUIDE ---
 
 ✅ QUICKEST FIX (TRY FIRST):
 1.  🥷 Use Incognito/Private Mode:
     • Press Ctrl+Shift+N (Chrome/Edge) or Ctrl+Shift+P (Firefox).
-    • Open this HTML file there. This is the fastest workaround.
+    • Open this page there and try authenticating.
 
 🔧 TO FIX YOUR MAIN PROFILE (TRY IN ORDER):
 2.  🔌 Disable Extensions:
     • Go to your browser's extensions page (e.g., chrome://extensions).
-    • TEMPORARILY disable ALL extensions, especially ad-blockers (uBlock, AdBlock) and privacy blockers.
+    • TEMPORARILY disable ALL extensions, especially:
+      - Ad-blockers (uBlock, AdBlock, AdGuard)
+      - Privacy blockers (Privacy Badger, Ghostery)
+      - VPN extensions
     • Refresh this page and try authenticating again.
 
-3.  🧹 Clear Site Data for Puter:
-    • Go to puter.com, click the 🔒 icon in the address bar -> Site Settings/Cookies and site data -> Delete data.
-    • Refresh this page and try again.
+3.  🧹 Clear Cookies for Puter:
+    • Go to puter.com in a new tab
+    • Click the 🔒 lock icon in the address bar
+    • Select "Cookies and site data" → "Delete"
+    • Come back to this page and try again.
 
 4.  🍪 Allow Third-Party Cookies:
-    • Go to your browser's cookie settings (e.g., chrome://settings/cookies).
-    • Ensure "Block third-party cookies" is NOT enabled, or add "[*.]puter.com" to the allowed list.
+    • Chrome/Edge: chrome://settings/cookies
+    • Firefox: about:preferences#privacy
+    • Ensure third-party cookies are NOT completely blocked
+    • Or whitelist [*.]puter.com
 
-If you are running this from a local server (like localhost), the issue is almost certainly extensions or cookie settings.
+5.  🌐 Check Your Network:
+    • Make sure puter.com is not blocked by your network/ISP/firewall
+    • Try a VPN if it's blocked
+
+If still not working, the issue is definitely with browser settings or network restrictions, not the code.
 `;
+                    if (authButton) {
+                        authButton.textContent = '❌ Auth Failed - Try Guide';
+                    }
+                }
+                
                 alert(troubleshootGuide);
             }
         }
@@ -1093,7 +1188,12 @@ If you are running this from a local server (like localhost), the issue is almos
             
             try {
                 isStreaming = true;
-                if (typeof puter === 'undefined') { throw new Error('Puter.js is not available.'); }
+                
+                // Check if Puter is available
+                if (typeof puter === 'undefined') {
+                    throw new Error('Puter.js library is not loaded. Please refresh the page and wait for it to load, then authenticate first.');
+                }
+                
                 console.log('📡 Calling Puter AI with model:', currentModel, 'and full history.');
                 
                 const response = await puter.ai.chat(chatHistory, {
