@@ -51,4 +51,5 @@ echo.
 echo  - To STOP the server, simply close this command window.
 echo  - If authentication fails, follow the guide in the popup.
 echo =========================================================
-echo.
+echo.run
+run_server.bat

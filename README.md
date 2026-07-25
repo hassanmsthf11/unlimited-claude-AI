@@ -28,6 +28,26 @@ This interface does **not** use a pirated or reverse-engineered API. It uses the
 
 ---
 
+### 📱 Install on Your Phone (PWA)
+
+This app is now an installable **Progressive Web App**. Once it's deployed to a URL, you can add it to your phone's home screen and it behaves like a native app (full screen, own icon, offline app‑shell).
+
+**Deploy it (one time):**
+The included GitHub Actions workflow (`.github/workflows/deploy-pages.yml`) auto‑deploys to **GitHub Pages**. Enable it once:
+1. In your repo on GitHub go to **Settings → Pages**.
+2. Under **Build and deployment → Source**, choose **GitHub Actions**.
+3. Push to this branch (or run the *Deploy to GitHub Pages* workflow manually). Your app goes live at the URL shown in the workflow summary (typically `https://dolfi24.github.io/unlimited-claude-AI/`).
+
+**Add it to your phone:**
+- **Android (Chrome):** open the URL → tap the **⋮** menu → **Add to Home screen** / **Install app**.
+- **iPhone/iPad (Safari):** open the URL → tap the **Share** button → **Add to Home Screen**.
+
+That's it — launch it from the new icon and it opens full‑screen like an app.
+
+> ⚖️ **Note on “removing Claude’s restrictions”:** this project cannot (and does not) bypass the AI model’s safety guardrails — those are enforced by the model provider (Anthropic, via Puter.js), not by this web page. What it *does* give you is a **Custom instructions** box to steer tone/role/format, access to **all available models**, and unlimited saved chat history. Attempting to defeat provider safety systems violates their terms and gets accounts blocked.
+
+---
+
 ### ▶️ Getting Started (How to Run)
 
 Because browsers have security rules (CORS), you cannot simply open the `index.html` file directly. You must run it from a **local web server**. I've made this easy for you.
