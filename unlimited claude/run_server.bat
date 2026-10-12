@@ -3,7 +3,7 @@ setlocal
 
 REM --- Configuration ---
 set PORT=8000
-set HTML_FILE=Claude.html
+set HTML_FILE=index.html
 
 REM --- Launcher ---
 title Claude Interface Launcher
